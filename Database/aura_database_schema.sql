@@ -2,11 +2,14 @@
 -- AURA Retinal Screening System Database Schema
 -- System: SP26SE025
 -- Database: PostgreSQL
--- Version: 2.0 (Updated to match ERD pattern)
+-- Version: 2.0 (Final - Optimized and Reorganized)
 -- Created: 2025
 -- =====================================================
 
--- Drop existing tables if they exist
+-- =====================================================
+-- DROP TABLES (Reverse dependency order)
+-- =====================================================
+
 DROP TABLE IF EXISTS exported_reports CASCADE;
 DROP TABLE IF EXISTS medical_notes CASCADE;
 DROP TABLE IF EXISTS clinic_reports CASCADE;
@@ -20,35 +23,34 @@ DROP TABLE IF EXISTS payment_history CASCADE;
 DROP TABLE IF EXISTS user_packages CASCADE;
 DROP TABLE IF EXISTS service_packages CASCADE;
 DROP TABLE IF EXISTS annotations CASCADE;
+DROP TABLE IF EXISTS ai_feedback CASCADE;
 DROP TABLE IF EXISTS analysis_results CASCADE;
 DROP TABLE IF EXISTS retinal_images CASCADE;
+DROP TABLE IF EXISTS ai_model_versions CASCADE;
 DROP TABLE IF EXISTS patient_doctor_assignments CASCADE;
 DROP TABLE IF EXISTS clinic_doctors CASCADE;
 DROP TABLE IF EXISTS clinic_users CASCADE;
-DROP TABLE IF EXISTS ai_feedback CASCADE;
-DROP TABLE IF EXISTS ai_model_versions CASCADE;
 DROP TABLE IF EXISTS user_roles CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS doctors CASCADE;
-DROP TABLE IF EXISTS clinics CASCADE;
 DROP TABLE IF EXISTS admins CASCADE;
+DROP TABLE IF EXISTS clinics CASCADE;
+DROP TABLE IF EXISTS doctors CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS role_permissions CASCADE;
 DROP TABLE IF EXISTS roles CASCADE;
 DROP TABLE IF EXISTS permissions CASCADE;
-DROP TABLE IF EXISTS role_permissions CASCADE;
 
 -- =====================================================
--- 1. ROLES AND PERMISSIONS
+-- SECTION 1: ROLES AND PERMISSIONS (Foundation)
 -- =====================================================
 
 CREATE TABLE roles (
     Id VARCHAR(255) PRIMARY KEY,
-    RoleName VARCHAR(255),
+    RoleName VARCHAR(255) NOT NULL,
     CreatedDate DATE,
     CreatedBy VARCHAR(255),
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE permissions (
@@ -60,8 +62,7 @@ CREATE TABLE permissions (
     CreatedBy VARCHAR(255),
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE role_permissions (
@@ -70,15 +71,11 @@ CREATE TABLE role_permissions (
     PermissionId VARCHAR(255) NOT NULL REFERENCES permissions(Id) ON DELETE CASCADE,
     CreatedDate DATE,
     CreatedBy VARCHAR(255),
-    UpdatedDate DATE,
-    UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255),
     UNIQUE(RoleId, PermissionId)
 );
 
 -- =====================================================
--- 2. USERS (PATIENTS)
+-- SECTION 2: CORE ENTITIES (Users, Doctors, Clinics, Admins)
 -- =====================================================
 
 CREATE TABLE users (
@@ -106,31 +103,8 @@ CREATE TABLE users (
     CreatedBy VARCHAR(255),
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
-
--- =====================================================
--- 3. USER ROLES (JUNCTION TABLE)
--- =====================================================
-
-CREATE TABLE user_roles (
-    Id VARCHAR(255) PRIMARY KEY,
-    UserId VARCHAR(255) NOT NULL REFERENCES users(Id) ON DELETE CASCADE,
-    RoleId VARCHAR(255) NOT NULL REFERENCES roles(Id) ON DELETE CASCADE,
-    IsPrimary BOOLEAN DEFAULT FALSE,
-    CreatedDate DATE,
-    CreatedBy VARCHAR(255),
-    UpdatedDate DATE,
-    UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255),
-    UNIQUE(UserId, RoleId)
-);
-
--- =====================================================
--- 4. DOCTORS
--- =====================================================
 
 CREATE TABLE doctors (
     Id VARCHAR(255) PRIMARY KEY,
@@ -144,10 +118,7 @@ CREATE TABLE doctors (
     LicenseNumber VARCHAR(100) NOT NULL UNIQUE,
     Specialization VARCHAR(255),
     YearsOfExperience INTEGER,
-    Qualification TEXT,
-    HospitalAffiliation VARCHAR(255),
     ProfileImageUrl VARCHAR(500),
-    Bio TEXT,
     IsVerified BOOLEAN DEFAULT FALSE,
     IsActive BOOLEAN DEFAULT TRUE,
     LastLoginAt TIMESTAMP,
@@ -155,13 +126,8 @@ CREATE TABLE doctors (
     CreatedBy VARCHAR(255),
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
-
--- =====================================================
--- 5. CLINICS
--- =====================================================
 
 CREATE TABLE clinics (
     Id VARCHAR(255) PRIMARY KEY,
@@ -186,13 +152,8 @@ CREATE TABLE clinics (
     CreatedBy VARCHAR(255),
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
-
--- =====================================================
--- 6. ADMINS
--- =====================================================
 
 CREATE TABLE admins (
     Id VARCHAR(255) PRIMARY KEY,
@@ -211,13 +172,22 @@ CREATE TABLE admins (
     CreatedBy VARCHAR(255),
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
 
 -- =====================================================
--- 7. CLINIC RELATIONSHIPS
+-- SECTION 3: RELATIONSHIPS (Junction Tables)
 -- =====================================================
+
+CREATE TABLE user_roles (
+    Id VARCHAR(255) PRIMARY KEY,
+    UserId VARCHAR(255) NOT NULL REFERENCES users(Id) ON DELETE CASCADE,
+    RoleId VARCHAR(255) NOT NULL REFERENCES roles(Id) ON DELETE CASCADE,
+    IsPrimary BOOLEAN DEFAULT FALSE,
+    CreatedDate DATE,
+    CreatedBy VARCHAR(255),
+    UNIQUE(UserId, RoleId)
+);
 
 CREATE TABLE clinic_doctors (
     Id VARCHAR(255) PRIMARY KEY,
@@ -228,10 +198,6 @@ CREATE TABLE clinic_doctors (
     IsActive BOOLEAN DEFAULT TRUE,
     CreatedDate DATE,
     CreatedBy VARCHAR(255),
-    UpdatedDate DATE,
-    UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255),
     UNIQUE(ClinicId, DoctorId)
 );
 
@@ -243,10 +209,6 @@ CREATE TABLE clinic_users (
     IsActive BOOLEAN DEFAULT TRUE,
     CreatedDate DATE,
     CreatedBy VARCHAR(255),
-    UpdatedDate DATE,
-    UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255),
     UNIQUE(ClinicId, UserId)
 );
 
@@ -267,37 +229,7 @@ CREATE TABLE patient_doctor_assignments (
 );
 
 -- =====================================================
--- 8. RETINAL IMAGES
--- =====================================================
-
-CREATE TABLE retinal_images (
-    Id VARCHAR(255) PRIMARY KEY,
-    UserId VARCHAR(255) NOT NULL REFERENCES users(Id) ON DELETE CASCADE,
-    ClinicId VARCHAR(255) REFERENCES clinics(Id) ON DELETE SET NULL,
-    DoctorId VARCHAR(255) REFERENCES doctors(Id) ON DELETE SET NULL,
-    OriginalFilename VARCHAR(255) NOT NULL,
-    StoredFilename VARCHAR(255) NOT NULL,
-    FilePath VARCHAR(500) NOT NULL,
-    CloudinaryUrl VARCHAR(500),
-    FileSize BIGINT,
-    ImageType VARCHAR(50) CHECK (ImageType IN ('Fundus', 'OCT')),
-    ImageFormat VARCHAR(10) CHECK (ImageFormat IN ('JPEG', 'PNG', 'TIFF', 'DICOM')),
-    CaptureDevice VARCHAR(255),
-    CaptureDate TIMESTAMP,
-    EyeSide VARCHAR(10) CHECK (EyeSide IN ('Left', 'Right', 'Both')),
-    UploadStatus VARCHAR(50) DEFAULT 'Uploaded' CHECK (UploadStatus IN ('Uploaded', 'Processing', 'Processed', 'Failed')),
-    UploadedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ProcessedAt TIMESTAMP,
-    Metadata JSONB,
-    CreatedDate DATE,
-    CreatedBy VARCHAR(255),
-    UpdatedDate DATE,
-    UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE
-);
-
--- =====================================================
--- 9. AI MODEL VERSIONS
+-- SECTION 4: AI MODELS (Foundation for Analysis)
 -- =====================================================
 
 CREATE TABLE ai_model_versions (
@@ -316,13 +248,61 @@ CREATE TABLE ai_model_versions (
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
     IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255),
     UNIQUE(ModelName, VersionNumber)
 );
 
 -- =====================================================
--- 10. ANALYSIS RESULTS
+-- SECTION 5: IMAGES & ANALYSIS (Core Business Logic)
 -- =====================================================
+
+CREATE TABLE retinal_images (
+    Id VARCHAR(255) PRIMARY KEY,
+    UserId VARCHAR(255) NOT NULL REFERENCES users(Id) ON DELETE CASCADE,
+    ClinicId VARCHAR(255) REFERENCES clinics(Id) ON DELETE SET NULL,
+    DoctorId VARCHAR(255) REFERENCES doctors(Id) ON DELETE SET NULL,
+    BatchId VARCHAR(255),
+    OriginalFilename VARCHAR(255) NOT NULL,
+    StoredFilename VARCHAR(255) NOT NULL,
+    FilePath VARCHAR(500) NOT NULL,
+    CloudinaryUrl VARCHAR(500),
+    FileSize BIGINT,
+    ImageType VARCHAR(50) CHECK (ImageType IN ('Fundus', 'OCT')),
+    ImageFormat VARCHAR(10) CHECK (ImageFormat IN ('JPEG', 'PNG', 'TIFF', 'DICOM')),
+    EyeSide VARCHAR(10) CHECK (EyeSide IN ('Left', 'Right', 'Both')),
+    UploadStatus VARCHAR(50) DEFAULT 'Uploaded' CHECK (UploadStatus IN ('Uploaded', 'Processing', 'Processed', 'Failed')),
+    UploadedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ProcessedAt TIMESTAMP,
+    CreatedDate DATE,
+    CreatedBy VARCHAR(255),
+    UpdatedDate DATE,
+    UpdatedBy VARCHAR(255),
+    IsDeleted BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE bulk_upload_batches (
+    Id VARCHAR(255) PRIMARY KEY,
+    ClinicId VARCHAR(255) NOT NULL REFERENCES clinics(Id) ON DELETE CASCADE,
+    UploadedBy VARCHAR(255) NOT NULL,
+    UploadedByType VARCHAR(20) NOT NULL CHECK (UploadedByType IN ('Doctor', 'Admin', 'ClinicManager')),
+    BatchName VARCHAR(255),
+    TotalImages INTEGER NOT NULL DEFAULT 0,
+    ProcessedImages INTEGER DEFAULT 0,
+    FailedImages INTEGER DEFAULT 0,
+    ProcessingImages INTEGER DEFAULT 0,
+    UploadStatus VARCHAR(50) DEFAULT 'Pending' CHECK (UploadStatus IN ('Pending', 'Uploading', 'Processing', 'Completed', 'Failed', 'PartiallyCompleted')),
+    StartedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CompletedAt TIMESTAMP,
+    FailureReason TEXT,
+    CreatedDate DATE,
+    CreatedBy VARCHAR(255),
+    UpdatedDate DATE,
+    UpdatedBy VARCHAR(255),
+    IsDeleted BOOLEAN DEFAULT FALSE
+);
+
+-- Add BatchId foreign key after bulk_upload_batches is created
+ALTER TABLE retinal_images ADD CONSTRAINT FK_retinal_images_BatchId 
+    FOREIGN KEY (BatchId) REFERENCES bulk_upload_batches(Id) ON DELETE SET NULL;
 
 CREATE TABLE analysis_results (
     Id VARCHAR(255) PRIMARY KEY,
@@ -348,8 +328,6 @@ CREATE TABLE analysis_results (
     StrokeScore DECIMAL(5,2),
     
     -- Vascular Abnormalities
-    VesselTortuosity DECIMAL(5,2),
-    VesselWidthVariation DECIMAL(5,2),
     MicroaneurysmsCount INTEGER DEFAULT 0,
     HemorrhagesDetected BOOLEAN DEFAULT FALSE,
     ExudatesDetected BOOLEAN DEFAULT FALSE,
@@ -366,7 +344,6 @@ CREATE TABLE analysis_results (
     HealthWarnings TEXT,
     
     -- Processing Info
-    ProcessingTimeSeconds INTEGER,
     AnalysisStartedAt TIMESTAMP,
     AnalysisCompletedAt TIMESTAMP,
     
@@ -378,13 +355,8 @@ CREATE TABLE analysis_results (
     CreatedBy VARCHAR(255),
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
-
--- =====================================================
--- 11. ANNOTATIONS
--- =====================================================
 
 CREATE TABLE annotations (
     Id VARCHAR(255) PRIMARY KEY,
@@ -398,13 +370,8 @@ CREATE TABLE annotations (
     CreatedBy VARCHAR(255),
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
-
--- =====================================================
--- 12. AI FEEDBACK
--- =====================================================
 
 CREATE TABLE ai_feedback (
     Id VARCHAR(255) PRIMARY KEY,
@@ -419,12 +386,28 @@ CREATE TABLE ai_feedback (
     CreatedBy VARCHAR(255),
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE medical_notes (
+    Id VARCHAR(255) PRIMARY KEY,
+    ResultId VARCHAR(255) NOT NULL REFERENCES analysis_results(Id) ON DELETE CASCADE,
+    DoctorId VARCHAR(255) NOT NULL REFERENCES doctors(Id) ON DELETE CASCADE,
+    NoteType VARCHAR(50) NOT NULL CHECK (NoteType IN ('Diagnosis', 'Recommendation', 'FollowUp', 'General', 'Prescription')),
+    NoteContent TEXT NOT NULL,
+    Diagnosis VARCHAR(255),
+    Prescription TEXT,
+    FollowUpDate DATE,
+    IsImportant BOOLEAN DEFAULT FALSE,
+    CreatedDate DATE,
+    CreatedBy VARCHAR(255),
+    UpdatedDate DATE,
+    UpdatedBy VARCHAR(255),
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
 
 -- =====================================================
--- 13. SERVICE PACKAGES
+-- SECTION 6: PACKAGES & PAYMENTS (Business Logic)
 -- =====================================================
 
 CREATE TABLE service_packages (
@@ -441,13 +424,8 @@ CREATE TABLE service_packages (
     CreatedDate DATE,
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
-
--- =====================================================
--- 14. USER PACKAGES (PURCHASED PACKAGES)
--- =====================================================
 
 CREATE TABLE user_packages (
     Id VARCHAR(255) PRIMARY KEY,
@@ -465,10 +443,6 @@ CREATE TABLE user_packages (
     IsDeleted BOOLEAN DEFAULT FALSE,
     CHECK ((UserId IS NOT NULL AND ClinicId IS NULL) OR (UserId IS NULL AND ClinicId IS NOT NULL))
 );
-
--- =====================================================
--- 15. PAYMENT HISTORY
--- =====================================================
 
 CREATE TABLE payment_history (
     Id VARCHAR(255) PRIMARY KEY,
@@ -494,7 +468,7 @@ CREATE TABLE payment_history (
 );
 
 -- =====================================================
--- 16. MESSAGES (CONSULTATION CHAT)
+-- SECTION 7: COMMUNICATION (Messages & Notifications)
 -- =====================================================
 
 CREATE TABLE messages (
@@ -511,15 +485,8 @@ CREATE TABLE messages (
     ReadAt TIMESTAMP,
     CreatedDate DATE,
     CreatedBy VARCHAR(255),
-    UpdatedDate DATE,
-    UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
-
--- =====================================================
--- 17. NOTIFICATIONS
--- =====================================================
 
 CREATE TABLE notifications (
     Id VARCHAR(255) PRIMARY KEY,
@@ -536,10 +503,7 @@ CREATE TABLE notifications (
     ReadAt TIMESTAMP,
     CreatedDate DATE,
     CreatedBy VARCHAR(255),
-    UpdatedDate DATE,
-    UpdatedBy VARCHAR(255),
     IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255),
     CHECK (
         (UserId IS NOT NULL AND DoctorId IS NULL AND ClinicId IS NULL AND AdminId IS NULL) OR
         (UserId IS NULL AND DoctorId IS NOT NULL AND ClinicId IS NULL AND AdminId IS NULL) OR
@@ -549,48 +513,7 @@ CREATE TABLE notifications (
 );
 
 -- =====================================================
--- 18. AUDIT LOGS
--- =====================================================
-
-CREATE TABLE audit_logs (
-    Id VARCHAR(255) PRIMARY KEY,
-    UserId VARCHAR(255) REFERENCES users(Id) ON DELETE SET NULL,
-    DoctorId VARCHAR(255) REFERENCES doctors(Id) ON DELETE SET NULL,
-    AdminId VARCHAR(255) REFERENCES admins(Id) ON DELETE SET NULL,
-    ActionType VARCHAR(100) NOT NULL,
-    ResourceType VARCHAR(100) NOT NULL,
-    ResourceId VARCHAR(255),
-    OldValues JSONB,
-    NewValues JSONB,
-    IpAddress VARCHAR(45),
-    UserAgent TEXT,
-    CreatedDate DATE,
-    CreatedBy VARCHAR(255)
-);
-
--- =====================================================
--- 19. MEDICAL NOTES (FR-16: Doctor add notes/diagnoses)
--- =====================================================
-
-CREATE TABLE medical_notes (
-    Id VARCHAR(255) PRIMARY KEY,
-    ResultId VARCHAR(255) NOT NULL REFERENCES analysis_results(Id) ON DELETE CASCADE,
-    DoctorId VARCHAR(255) NOT NULL REFERENCES doctors(Id) ON DELETE CASCADE,
-    NoteType VARCHAR(50) NOT NULL CHECK (NoteType IN ('Diagnosis', 'Recommendation', 'FollowUp', 'General', 'Prescription')),
-    NoteContent TEXT NOT NULL,
-    Diagnosis VARCHAR(255),
-    Prescription TEXT,
-    FollowUpDate DATE,
-    IsImportant BOOLEAN DEFAULT FALSE,
-    CreatedDate DATE,
-    CreatedBy VARCHAR(255),
-    UpdatedDate DATE,
-    UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE
-);
-
--- =====================================================
--- 20. EXPORTED REPORTS (FR-7: Download/Export PDF/CSV)
+-- SECTION 8: REPORTS & CONFIGURATIONS (Admin Features)
 -- =====================================================
 
 CREATE TABLE exported_reports (
@@ -612,10 +535,6 @@ CREATE TABLE exported_reports (
     UpdatedBy VARCHAR(255),
     IsDeleted BOOLEAN DEFAULT FALSE
 );
-
--- =====================================================
--- 21. CLINIC REPORTS (FR-26: Generate clinic-wide reports)
--- =====================================================
 
 CREATE TABLE clinic_reports (
     Id VARCHAR(255) PRIMARY KEY,
@@ -640,10 +559,6 @@ CREATE TABLE clinic_reports (
     IsDeleted BOOLEAN DEFAULT FALSE
 );
 
--- =====================================================
--- 22. AI CONFIGURATIONS (FR-33: Configure AI parameters)
--- =====================================================
-
 CREATE TABLE ai_configurations (
     Id VARCHAR(255) PRIMARY KEY,
     ConfigurationName VARCHAR(255) NOT NULL UNIQUE,
@@ -660,13 +575,8 @@ CREATE TABLE ai_configurations (
     CreatedBy VARCHAR(255),
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
-
--- =====================================================
--- 23. NOTIFICATION TEMPLATES (FR-39: Manage templates)
--- =====================================================
 
 CREATE TABLE notification_templates (
     Id VARCHAR(255) PRIMARY KEY,
@@ -681,200 +591,141 @@ CREATE TABLE notification_templates (
     CreatedBy VARCHAR(255),
     UpdatedDate DATE,
     UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    IsDeleted BOOLEAN DEFAULT FALSE
 );
 
 -- =====================================================
--- 24. BULK UPLOAD BATCHES (FR-24: Bulk upload tracking)
+-- SECTION 9: AUDIT (System Logging)
 -- =====================================================
 
-CREATE TABLE bulk_upload_batches (
+CREATE TABLE audit_logs (
     Id VARCHAR(255) PRIMARY KEY,
-    ClinicId VARCHAR(255) NOT NULL REFERENCES clinics(Id) ON DELETE CASCADE,
-    UploadedBy VARCHAR(255) NOT NULL,
-    UploadedByType VARCHAR(20) NOT NULL CHECK (UploadedByType IN ('Doctor', 'Admin', 'ClinicManager')),
-    BatchName VARCHAR(255),
-    TotalImages INTEGER NOT NULL DEFAULT 0,
-    ProcessedImages INTEGER DEFAULT 0,
-    FailedImages INTEGER DEFAULT 0,
-    ProcessingImages INTEGER DEFAULT 0,
-    UploadStatus VARCHAR(50) DEFAULT 'Pending' CHECK (UploadStatus IN ('Pending', 'Uploading', 'Processing', 'Completed', 'Failed', 'PartiallyCompleted')),
-    StartedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CompletedAt TIMESTAMP,
-    FailureReason TEXT,
-    Metadata JSONB,
+    UserId VARCHAR(255) REFERENCES users(Id) ON DELETE SET NULL,
+    DoctorId VARCHAR(255) REFERENCES doctors(Id) ON DELETE SET NULL,
+    AdminId VARCHAR(255) REFERENCES admins(Id) ON DELETE SET NULL,
+    ActionType VARCHAR(100) NOT NULL,
+    ResourceType VARCHAR(100) NOT NULL,
+    ResourceId VARCHAR(255),
+    OldValues JSONB,
+    NewValues JSONB,
+    IpAddress VARCHAR(45),
+    UserAgent TEXT,
     CreatedDate DATE,
-    CreatedBy VARCHAR(255),
-    UpdatedDate DATE,
-    UpdatedBy VARCHAR(255),
-    IsDeleted BOOLEAN DEFAULT FALSE,
-    Note VARCHAR(255)
+    CreatedBy VARCHAR(255)
 );
-
--- Add BatchId to retinal_images for bulk upload tracking
-ALTER TABLE retinal_images ADD COLUMN BatchId VARCHAR(255) REFERENCES bulk_upload_batches(Id) ON DELETE SET NULL;
 
 -- =====================================================
 -- INDEXES FOR PERFORMANCE
 -- =====================================================
 
--- Users indexes
+-- Core entities - Email indexes
 CREATE INDEX idx_users_email ON users(Email);
-CREATE INDEX idx_users_provider_user_id ON users(ProviderUserId);
-CREATE INDEX idx_users_is_active ON users(IsActive);
-CREATE INDEX idx_users_is_deleted ON users(IsDeleted);
-
--- Doctors indexes
 CREATE INDEX idx_doctors_email ON doctors(Email);
-CREATE INDEX idx_doctors_license_number ON doctors(LicenseNumber);
-CREATE INDEX idx_doctors_is_verified ON doctors(IsVerified);
-CREATE INDEX idx_doctors_is_deleted ON doctors(IsDeleted);
-
--- Clinics indexes
 CREATE INDEX idx_clinics_email ON clinics(Email);
-CREATE INDEX idx_clinics_verification_status ON clinics(VerificationStatus);
-CREATE INDEX idx_clinics_is_active ON clinics(IsActive);
-CREATE INDEX idx_clinics_is_deleted ON clinics(IsDeleted);
-
--- Admins indexes
 CREATE INDEX idx_admins_email ON admins(Email);
-CREATE INDEX idx_admins_role_id ON admins(RoleId);
-CREATE INDEX idx_admins_is_deleted ON admins(IsDeleted);
 
--- Retinal Images indexes
-CREATE INDEX idx_retinal_images_user_id ON retinal_images(UserId);
-CREATE INDEX idx_retinal_images_clinic_id ON retinal_images(ClinicId);
-CREATE INDEX idx_retinal_images_doctor_id ON retinal_images(DoctorId);
-CREATE INDEX idx_retinal_images_upload_status ON retinal_images(UploadStatus);
-CREATE INDEX idx_retinal_images_uploaded_at ON retinal_images(UploadedAt);
-CREATE INDEX idx_retinal_images_is_deleted ON retinal_images(IsDeleted);
-
--- Analysis Results indexes
-CREATE INDEX idx_analysis_results_image_id ON analysis_results(ImageId);
-CREATE INDEX idx_analysis_results_user_id ON analysis_results(UserId);
-CREATE INDEX idx_analysis_results_risk_level ON analysis_results(OverallRiskLevel);
-CREATE INDEX idx_analysis_results_status ON analysis_results(AnalysisStatus);
-CREATE INDEX idx_analysis_results_is_deleted ON analysis_results(IsDeleted);
-
--- Annotations indexes
-CREATE INDEX idx_annotations_result_id ON annotations(ResultId);
-CREATE INDEX idx_annotations_type ON annotations(AnnotationType);
-CREATE INDEX idx_annotations_is_deleted ON annotations(IsDeleted);
-
--- Messages indexes
-CREATE INDEX idx_messages_conversation_id ON messages(ConversationId);
-CREATE INDEX idx_messages_send_by ON messages(SendById, SendByType);
-CREATE INDEX idx_messages_receiver ON messages(ReceiverId, ReceiverType);
-CREATE INDEX idx_messages_is_read ON messages(IsRead);
-CREATE INDEX idx_messages_is_deleted ON messages(IsDeleted);
-
--- Notifications indexes
-CREATE INDEX idx_notifications_user_id ON notifications(UserId);
-CREATE INDEX idx_notifications_doctor_id ON notifications(DoctorId);
-CREATE INDEX idx_notifications_clinic_id ON notifications(ClinicId);
-CREATE INDEX idx_notifications_is_read ON notifications(IsRead);
-CREATE INDEX idx_notifications_is_deleted ON notifications(IsDeleted);
-
--- Payment History indexes
-CREATE INDEX idx_payment_history_user_id ON payment_history(UserId);
-CREATE INDEX idx_payment_history_clinic_id ON payment_history(ClinicId);
-CREATE INDEX idx_payment_history_status ON payment_history(PaymentStatus);
-CREATE INDEX idx_payment_history_date ON payment_history(PaymentDate);
-CREATE INDEX idx_payment_history_is_deleted ON payment_history(IsDeleted);
-
--- User Packages indexes
-CREATE INDEX idx_user_packages_user_id ON user_packages(UserId);
-CREATE INDEX idx_user_packages_clinic_id ON user_packages(ClinicId);
-CREATE INDEX idx_user_packages_is_active ON user_packages(IsActive);
-CREATE INDEX idx_user_packages_expires_at ON user_packages(ExpiresAt);
-CREATE INDEX idx_user_packages_is_deleted ON user_packages(IsDeleted);
-
--- Audit Logs indexes
-CREATE INDEX idx_audit_logs_user_id ON audit_logs(UserId);
-CREATE INDEX idx_audit_logs_action_type ON audit_logs(ActionType);
-CREATE INDEX idx_audit_logs_resource_type ON audit_logs(ResourceType);
-CREATE INDEX idx_audit_logs_created_date ON audit_logs(CreatedDate);
-CREATE INDEX idx_audit_logs_doctor_id ON audit_logs(DoctorId);
-CREATE INDEX idx_audit_logs_admin_id ON audit_logs(AdminId);
-
--- Clinic relationships indexes
+-- Relationship tables - Foreign keys
+CREATE INDEX idx_user_roles_user_id ON user_roles(UserId);
+CREATE INDEX idx_user_roles_role_id ON user_roles(RoleId);
 CREATE INDEX idx_clinic_doctors_clinic_id ON clinic_doctors(ClinicId);
 CREATE INDEX idx_clinic_doctors_doctor_id ON clinic_doctors(DoctorId);
 CREATE INDEX idx_clinic_users_clinic_id ON clinic_users(ClinicId);
 CREATE INDEX idx_clinic_users_user_id ON clinic_users(UserId);
-CREATE INDEX idx_patient_doctor_assignments_user_id ON patient_doctor_assignments(UserId);
-CREATE INDEX idx_patient_doctor_assignments_doctor_id ON patient_doctor_assignments(DoctorId);
 
--- User Roles indexes
-CREATE INDEX idx_user_roles_user_id ON user_roles(UserId);
-CREATE INDEX idx_user_roles_role_id ON user_roles(RoleId);
-CREATE INDEX idx_user_roles_is_deleted ON user_roles(IsDeleted);
-
--- Medical Notes indexes
+-- Images & Analysis - Foreign keys
+CREATE INDEX idx_retinal_images_user_id ON retinal_images(UserId);
+CREATE INDEX idx_retinal_images_clinic_id ON retinal_images(ClinicId);
+CREATE INDEX idx_retinal_images_batch_id ON retinal_images(BatchId);
+CREATE INDEX idx_analysis_results_image_id ON analysis_results(ImageId);
+CREATE INDEX idx_analysis_results_user_id ON analysis_results(UserId);
+CREATE INDEX idx_analysis_results_model_version_id ON analysis_results(ModelVersionId);
+CREATE INDEX idx_annotations_result_id ON annotations(ResultId);
 CREATE INDEX idx_medical_notes_result_id ON medical_notes(ResultId);
 CREATE INDEX idx_medical_notes_doctor_id ON medical_notes(DoctorId);
-CREATE INDEX idx_medical_notes_note_type ON medical_notes(NoteType);
-CREATE INDEX idx_medical_notes_is_deleted ON medical_notes(IsDeleted);
+CREATE INDEX idx_ai_feedback_result_id ON ai_feedback(ResultId);
+CREATE INDEX idx_ai_feedback_doctor_id ON ai_feedback(DoctorId);
 
--- Exported Reports indexes
-CREATE INDEX idx_exported_reports_result_id ON exported_reports(ResultId);
-CREATE INDEX idx_exported_reports_report_type ON exported_reports(ReportType);
-CREATE INDEX idx_exported_reports_exported_at ON exported_reports(ExportedAt);
-CREATE INDEX idx_exported_reports_is_deleted ON exported_reports(IsDeleted);
+-- Packages & Payments - Foreign keys
+CREATE INDEX idx_user_packages_user_id ON user_packages(UserId);
+CREATE INDEX idx_user_packages_clinic_id ON user_packages(ClinicId);
+CREATE INDEX idx_user_packages_package_id ON user_packages(PackageId);
+CREATE INDEX idx_payment_history_user_id ON payment_history(UserId);
+CREATE INDEX idx_payment_history_clinic_id ON payment_history(ClinicId);
+CREATE INDEX idx_payment_history_package_id ON payment_history(PackageId);
 
--- Clinic Reports indexes
-CREATE INDEX idx_clinic_reports_clinic_id ON clinic_reports(ClinicId);
+-- Communication - Foreign keys
+CREATE INDEX idx_notifications_user_id ON notifications(UserId);
+CREATE INDEX idx_notifications_doctor_id ON notifications(DoctorId);
+CREATE INDEX idx_notifications_clinic_id ON notifications(ClinicId);
+CREATE INDEX idx_messages_conversation_id ON messages(ConversationId);
+
+-- Status columns - Frequently filtered
+CREATE INDEX idx_retinal_images_upload_status ON retinal_images(UploadStatus);
+CREATE INDEX idx_analysis_results_status ON analysis_results(AnalysisStatus);
+CREATE INDEX idx_analysis_results_risk_level ON analysis_results(OverallRiskLevel);
+CREATE INDEX idx_payment_history_status ON payment_history(PaymentStatus);
+CREATE INDEX idx_clinics_verification_status ON clinics(VerificationStatus);
 CREATE INDEX idx_clinic_reports_report_type ON clinic_reports(ReportType);
+CREATE INDEX idx_notifications_is_read ON notifications(IsRead);
+CREATE INDEX idx_messages_is_read ON messages(IsRead);
+
+-- Date columns - Range queries
+CREATE INDEX idx_retinal_images_uploaded_at ON retinal_images(UploadedAt);
+CREATE INDEX idx_payment_history_date ON payment_history(PaymentDate);
+CREATE INDEX idx_user_packages_expires_at ON user_packages(ExpiresAt);
 CREATE INDEX idx_clinic_reports_period ON clinic_reports(PeriodStart, PeriodEnd);
-CREATE INDEX idx_clinic_reports_generated_at ON clinic_reports(GeneratedAt);
-CREATE INDEX idx_clinic_reports_is_deleted ON clinic_reports(IsDeleted);
-
--- AI Configurations indexes
-CREATE INDEX idx_ai_configurations_config_type ON ai_configurations(ConfigurationType);
-CREATE INDEX idx_ai_configurations_model_version_id ON ai_configurations(ModelVersionId);
-CREATE INDEX idx_ai_configurations_is_active ON ai_configurations(IsActive);
-CREATE INDEX idx_ai_configurations_is_deleted ON ai_configurations(IsDeleted);
-
--- Notification Templates indexes
-CREATE INDEX idx_notification_templates_template_type ON notification_templates(TemplateType);
-CREATE INDEX idx_notification_templates_is_active ON notification_templates(IsActive);
-CREATE INDEX idx_notification_templates_language ON notification_templates(Language);
-CREATE INDEX idx_notification_templates_is_deleted ON notification_templates(IsDeleted);
-
--- Bulk Upload Batches indexes
-CREATE INDEX idx_bulk_upload_batches_clinic_id ON bulk_upload_batches(ClinicId);
-CREATE INDEX idx_bulk_upload_batches_upload_status ON bulk_upload_batches(UploadStatus);
-CREATE INDEX idx_bulk_upload_batches_started_at ON bulk_upload_batches(StartedAt);
-CREATE INDEX idx_bulk_upload_batches_is_deleted ON bulk_upload_batches(IsDeleted);
-
--- Retinal Images batch index
-CREATE INDEX idx_retinal_images_batch_id ON retinal_images(BatchId);
+CREATE INDEX idx_audit_logs_created_date ON audit_logs(CreatedDate);
+CREATE INDEX idx_exported_reports_exported_at ON exported_reports(ExportedAt);
 
 -- =====================================================
--- COMMENTS ON TABLES
+-- TABLE COMMENTS
 -- =====================================================
 
-COMMENT ON TABLE users IS 'Stores patient/user account information';
-COMMENT ON TABLE doctors IS 'Stores doctor account information and credentials';
-COMMENT ON TABLE clinics IS 'Stores clinic/organization information';
-COMMENT ON TABLE admins IS 'Stores system administrator accounts';
-COMMENT ON TABLE retinal_images IS 'Stores uploaded retinal fundus/OCT images';
-COMMENT ON TABLE analysis_results IS 'Stores AI-generated analysis results and risk assessments';
-COMMENT ON TABLE annotations IS 'Stores detailed annotations of detected abnormalities';
-COMMENT ON TABLE service_packages IS 'Stores available service packages for purchase';
-COMMENT ON TABLE user_packages IS 'Stores purchased packages and remaining analysis credits';
-COMMENT ON TABLE payment_history IS 'Stores all payment transactions';
-COMMENT ON TABLE messages IS 'Stores consultation chat messages between users and doctors';
-COMMENT ON TABLE notifications IS 'Stores system notifications for all user types';
-COMMENT ON TABLE audit_logs IS 'Stores audit trail for system actions and changes';
-COMMENT ON TABLE user_roles IS 'Junction table linking users to their roles';
-COMMENT ON TABLE medical_notes IS 'Stores medical notes, diagnoses, and recommendations from doctors (FR-16)';
-COMMENT ON TABLE exported_reports IS 'Stores history of exported reports in PDF/CSV format (FR-7)';
-COMMENT ON TABLE clinic_reports IS 'Stores clinic-wide reports for screening campaigns (FR-26, FR-30)';
-COMMENT ON TABLE ai_configurations IS 'Stores AI parameters, thresholds, and retraining policies (FR-33)';
-COMMENT ON TABLE notification_templates IS 'Stores notification message templates (FR-39)';
-COMMENT ON TABLE bulk_upload_batches IS 'Tracks bulk image upload batches from clinics (FR-24)';
+-- Section 1: Roles and Permissions
+COMMENT ON TABLE roles IS 'System roles';
+COMMENT ON TABLE permissions IS 'System permissions';
+COMMENT ON TABLE role_permissions IS 'Role-permission mapping';
+
+-- Section 2: Core Entities
+COMMENT ON TABLE users IS 'Patient/user accounts';
+COMMENT ON TABLE doctors IS 'Doctor accounts';
+COMMENT ON TABLE clinics IS 'Clinic/organization information';
+COMMENT ON TABLE admins IS 'System administrator accounts';
+
+-- Section 3: Relationships
+COMMENT ON TABLE user_roles IS 'User-role mapping';
+COMMENT ON TABLE clinic_doctors IS 'Clinic-doctor relationships';
+COMMENT ON TABLE clinic_users IS 'Clinic-user relationships';
+COMMENT ON TABLE patient_doctor_assignments IS 'Patient-doctor assignments';
+
+-- Section 4: AI Models
+COMMENT ON TABLE ai_model_versions IS 'AI model versions';
+
+-- Section 5: Images & Analysis
+COMMENT ON TABLE retinal_images IS 'Retinal fundus/OCT images';
+COMMENT ON TABLE bulk_upload_batches IS 'Bulk upload batches';
+COMMENT ON TABLE analysis_results IS 'AI analysis results and risk assessments';
+COMMENT ON TABLE annotations IS 'Image annotations';
+COMMENT ON TABLE ai_feedback IS 'Doctor feedback on AI results';
+COMMENT ON TABLE medical_notes IS 'Medical notes and diagnoses';
+
+-- Section 6: Packages & Payments
+COMMENT ON TABLE service_packages IS 'Service packages';
+COMMENT ON TABLE user_packages IS 'Purchased packages';
+COMMENT ON TABLE payment_history IS 'Payment transactions';
+
+-- Section 7: Communication
+COMMENT ON TABLE messages IS 'Consultation messages';
+COMMENT ON TABLE notifications IS 'System notifications';
+
+-- Section 8: Reports & Configurations
+COMMENT ON TABLE exported_reports IS 'Exported reports';
+COMMENT ON TABLE clinic_reports IS 'Clinic-wide reports';
+COMMENT ON TABLE ai_configurations IS 'AI configurations';
+COMMENT ON TABLE notification_templates IS 'Notification templates';
+
+-- Section 9: Audit
+COMMENT ON TABLE audit_logs IS 'Audit trail';
 
 -- =====================================================
 -- END OF SCHEMA
