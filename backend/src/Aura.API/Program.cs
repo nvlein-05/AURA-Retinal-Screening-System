@@ -84,7 +84,14 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Admin", "SuperAdmin");
+    });
+});
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -108,6 +115,11 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IUserService, UserService>();
 
+// FR-31: Admin Account Management (DB based)
+builder.Services.AddScoped<Aura.API.Admin.AdminDb>();
+builder.Services.AddScoped<Aura.API.Admin.AdminJwtService>();
+builder.Services.AddScoped<Aura.API.Admin.AdminAccountRepository>();
+
 // TODO: Add database context when ready
 // builder.Services.AddDbContext<AuraDbContext>(options =>
 //     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -128,7 +140,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// Mặc định không ép HTTPS để tránh lỗi "Network Error" khi local chỉ chạy http://localhost:5000
+// Nếu deploy thật sự cần HTTPS redirect, bật cấu hình App:UseHttpsRedirection = true
+if (app.Configuration.GetValue<bool>("App:UseHttpsRedirection"))
+{
+    app.UseHttpsRedirection();
+}
 
 // Use CORS before authentication
 app.UseCors("AllowFrontend");
