@@ -115,6 +115,9 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IUserService, UserService>();
 
+// Notifications (in-memory for now)
+builder.Services.AddSingleton<Aura.Application.Services.Notifications.INotificationService, Aura.Infrastructure.Services.Notifications.NotificationService>();
+
 // FR-31: Admin Account Management (DB based)
 builder.Services.AddScoped<Aura.API.Admin.AdminDb>();
 builder.Services.AddScoped<Aura.API.Admin.AdminJwtService>();
