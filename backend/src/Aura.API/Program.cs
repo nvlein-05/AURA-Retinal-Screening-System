@@ -1,35 +1,25 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Aura.Application.Services.Users;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// TODO: Add database context
-// TODO: Add authentication & authorization
-// TODO: Add CORS
-// TODO: Add other services
+// In-memory user service for demo (does not touch other infra)
+builder.Services.AddSingleton<IUserService, UserService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-// TODO: Add CORS middleware
-// TODO: Add authentication middleware
-// TODO: Add authorization middleware
+// For local dev we serve only HTTP on http://localhost:5000
+// so we skip HTTPS redirection to tránh warning và shutdown.
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
 

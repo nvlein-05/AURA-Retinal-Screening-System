@@ -1,0 +1,16 @@
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\bin\Debug\net8.0\Aura.Application.deps.json
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\bin\Debug\net8.0\Aura.Application.dll
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\bin\Debug\net8.0\Aura.Application.pdb
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\bin\Debug\net8.0\Aura.Core.dll
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\bin\Debug\net8.0\Aura.Core.pdb
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\obj\Debug\net8.0\Aura.Application.csproj.AssemblyReference.cache
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\obj\Debug\net8.0\Aura.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\obj\Debug\net8.0\Aura.Application.AssemblyInfoInputs.cache
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\obj\Debug\net8.0\Aura.Application.AssemblyInfo.cs
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\obj\Debug\net8.0\Aura.Application.csproj.CoreCompileInputs.cache
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\obj\Debug\net8.0\Aura.Application.sourcelink.json
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\obj\Debug\net8.0\Aura.App.C1A6E793.Up2Date
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\obj\Debug\net8.0\Aura.Application.dll
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\obj\Debug\net8.0\refint\Aura.Application.dll
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\obj\Debug\net8.0\Aura.Application.pdb
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Application\obj\Debug\net8.0\ref\Aura.Application.dll

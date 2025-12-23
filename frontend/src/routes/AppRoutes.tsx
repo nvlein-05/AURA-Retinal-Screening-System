@@ -1,21 +1,12 @@
-import { Routes, Route } from 'react-router-dom';
-// TODO: Import pages
-// import LoginPage from '../pages/auth/LoginPage';
-// import RegisterPage from '../pages/auth/RegisterPage';
-// TODO: Import PrivateRoute component
+import { Routes, Route, Navigate } from 'react-router-dom';
+import ProfilePage from '../pages/user/ProfilePage';
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public routes */}
-      {/* <Route path="/login" element={<LoginPage />} /> */}
-      {/* <Route path="/register" element={<RegisterPage />} /> */}
-
-      {/* Protected routes */}
-      {/* <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} /> */}
-
-      {/* Default route */}
-      <Route path="/" element={<div>Welcome to AURA</div>} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/" element={<Navigate to="/profile" replace />} />
+      <Route path="*" element={<div>404 - Not found</div>} />
     </Routes>
   );
 };

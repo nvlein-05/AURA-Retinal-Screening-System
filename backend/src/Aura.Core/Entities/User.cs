@@ -29,6 +29,19 @@ public class User
     public bool IsDeleted { get; set; }
     public string? Note { get; set; }
 
+    // Medical info
+    public string? BloodType { get; set; }
+    public double? HeightCm { get; set; }
+    public double? WeightKg { get; set; }
+    public string? Allergies { get; set; }
+    public string? ChronicConditions { get; set; }
+    public string? CurrentMedications { get; set; }
+    public string? FamilyHistory { get; set; }
+    public string? EmergencyContactName { get; set; }
+    public string? EmergencyContactPhone { get; set; }
+    public string? Lifestyle { get; set; }
+    public string? MedicalNotes { get; set; }
+
     // TODO: Add navigation properties
     // public virtual ICollection<UserRole> UserRoles { get; set; }
 }

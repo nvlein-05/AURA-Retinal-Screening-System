@@ -1,0 +1,12 @@
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\bin\Debug\net8.0\Aura.Core.deps.json
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\bin\Debug\net8.0\Aura.Core.dll
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\bin\Debug\net8.0\Aura.Core.pdb
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\obj\Debug\net8.0\Aura.Core.GeneratedMSBuildEditorConfig.editorconfig
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\obj\Debug\net8.0\Aura.Core.AssemblyInfoInputs.cache
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\obj\Debug\net8.0\Aura.Core.AssemblyInfo.cs
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\obj\Debug\net8.0\Aura.Core.csproj.CoreCompileInputs.cache
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\obj\Debug\net8.0\Aura.Core.sourcelink.json
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\obj\Debug\net8.0\Aura.Core.dll
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\obj\Debug\net8.0\refint\Aura.Core.dll
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\obj\Debug\net8.0\Aura.Core.pdb
+D:\HOC TAP\bbbbbbbbb\AURA-Retinal-Screening-System\backend\src\Aura.Core\obj\Debug\net8.0\ref\Aura.Core.dll
