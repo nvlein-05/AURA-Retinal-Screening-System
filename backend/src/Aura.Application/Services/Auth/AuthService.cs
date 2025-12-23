@@ -613,19 +613,74 @@ public class AuthService : IAuthService
         public string? Picture { get; set; }
     }
 
+    // Verify Facebook access token by calling Facebook's Graph API
     private async Task<SocialUserInfo?> VerifyFacebookTokenAsync(string accessToken)
     {
-        // TODO: Use Facebook Graph API to verify token
-        await Task.Delay(100);
-        
-        return new SocialUserInfo
+        try
         {
-            ProviderId = "fb_" + Guid.NewGuid().ToString("N")[..16],
-            Email = "user@facebook.com",
-            FirstName = "Facebook",
-            LastName = "User",
-            Provider = "facebook"
-        };
+            using var httpClient = new HttpClient();
+            
+            // Gọi Facebook Graph API để lấy thông tin user
+            var response = await httpClient.GetAsync(
+                $"https://graph.facebook.com/me?fields=id,email,first_name,last_name,picture&access_token={accessToken}");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Facebook token verification failed: {StatusCode}", response.StatusCode);
+                return null;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var facebookUser = System.Text.Json.JsonSerializer.Deserialize<FacebookUserInfo>(content, 
+                new System.Text.Json.JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true 
+                });
+
+            if (facebookUser == null || string.IsNullOrEmpty(facebookUser.Id))
+            {
+                _logger.LogWarning("Failed to parse Facebook user info");
+                return null;
+            }
+
+            // Facebook có thể không trả về email nếu user không cấp quyền
+            var email = facebookUser.Email ?? $"{facebookUser.Id}@facebook.com";
+
+            return new SocialUserInfo
+            {
+                ProviderId = facebookUser.Id,
+                Email = email,
+                FirstName = facebookUser.FirstName,
+                LastName = facebookUser.LastName,
+                ProfileImageUrl = facebookUser.Picture?.Data?.Url,
+                Provider = "facebook"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error verifying Facebook token");
+            return null;
+        }
+    }
+
+    // Facebook userinfo response model
+    private class FacebookUserInfo
+    {
+        public string? Id { get; set; }
+        public string? Email { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public FacebookPicture? Picture { get; set; }
+    }
+
+    private class FacebookPicture
+    {
+        public FacebookPictureData? Data { get; set; }
+    }
+
+    private class FacebookPictureData
+    {
+        public string? Url { get; set; }
     }
 
     private async Task<SocialUserInfo?> VerifyTwitterTokenAsync(string oauthToken, string oauthVerifier)

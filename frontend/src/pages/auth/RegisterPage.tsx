@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
+import FacebookLogin from '@greatsumini/react-facebook-login';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
 
+// Facebook App ID từ environment variables
+const facebookAppId = (import.meta as any).env.VITE_FACEBOOK_APP_ID || '';
+
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { register, googleLogin, isLoading, error, clearError } = useAuthStore();
+  const { register, googleLogin, facebookLogin, isLoading, error, clearError } = useAuthStore();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -83,8 +87,25 @@ const RegisterPage = () => {
     handleGoogleRegisterClick();
   };
 
-  const handleFacebookRegister = async () => {
-    toast.error('Đăng ký Facebook đang được phát triển');
+  // Facebook OAuth Register/Login Handler
+  const handleFacebookRegisterSuccess = async (response: { accessToken: string }) => {
+    try {
+      const success = await facebookLogin(response.accessToken);
+      if (success) {
+        toast.success('Đăng ký bằng Facebook thành công!');
+        navigate('/dashboard');
+      } else {
+        toast.error(error || 'Đăng ký Facebook thất bại');
+      }
+    } catch (err) {
+      console.error('Facebook register error:', err);
+      toast.error('Đăng ký Facebook thất bại');
+    }
+  };
+
+  const handleFacebookRegisterError = (error: { status: string }) => {
+    console.error('Facebook OAuth error:', error);
+    toast.error('Đăng ký Facebook thất bại');
   };
 
   const handleTwitterRegister = async () => {
@@ -221,16 +242,23 @@ const RegisterPage = () => {
                 <span className="text-xs font-medium text-text-main dark:text-white">Google</span>
               </button>
 
-              <button
-                onClick={handleFacebookRegister}
-                disabled={isLoading}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 border border-border-light dark:border-border-dark rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all bg-white dark:bg-transparent disabled:opacity-50"
-              >
-                <svg className="w-5 h-5 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
-                  <path clipRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" fillRule="evenodd"/>
-                </svg>
-                <span className="text-xs font-medium text-text-main dark:text-white">Facebook</span>
-              </button>
+              <FacebookLogin
+                appId={facebookAppId}
+                onSuccess={handleFacebookRegisterSuccess}
+                onFail={handleFacebookRegisterError}
+                render={({ onClick }) => (
+                  <button
+                    onClick={onClick}
+                    disabled={isLoading || !facebookAppId}
+                    className="flex items-center justify-center gap-2 px-3 py-2.5 border border-border-light dark:border-border-dark rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all bg-white dark:bg-transparent disabled:opacity-50"
+                  >
+                    <svg className="w-5 h-5 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
+                      <path clipRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" fillRule="evenodd"/>
+                    </svg>
+                    <span className="text-xs font-medium text-text-main dark:text-white">Facebook</span>
+                  </button>
+                )}
+              />
 
               <button
                 onClick={handleTwitterRegister}
