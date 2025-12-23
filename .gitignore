@@ -31,10 +31,6 @@ Thumbs.db
 *.log
 logs/
 
-# Environment
-.env
-.env.local
-.env.production
 
 # Build
 build/
