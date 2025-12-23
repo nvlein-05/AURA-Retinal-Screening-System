@@ -104,26 +104,15 @@ public class NotificationService : INotificationService
             yield return n;
         }
 
-        while (!ct.IsCancellationRequested)
+        while (await reader.WaitToReadAsync(ct))
         {
-            NotificationDto? item = null;
-            try
+            while (reader.TryRead(out var n))
             {
-                if (await reader.WaitToReadAsync(ct))
+                // filter by user
+                if ((n.UserId ?? string.Empty) == (userId ?? string.Empty) || (n.UserId == null && userId == null))
                 {
-                    if (reader.TryRead(out var n))
-                    {
-                        // filter by user
-                        if ((n.UserId ?? string.Empty) == (userId ?? string.Empty) || (n.UserId == null && userId == null))
-                        {
-                            yield return n;
-                        }
-                    }
+                    yield return n;
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                yield break;
             }
         }
     }
