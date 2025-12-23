@@ -3,7 +3,6 @@ import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import ProfilePage from '../pages/user/ProfilePage';
 import HomePage from '../pages/HomePage';
-import GiaoDienViewerPage from '../pages/giaodien/GiaoDienViewerPage';
 import PatientDashboard from '../pages/patient/PatientDashboard';
 import { useAuthStore } from '../store/authStore';
 
@@ -66,16 +65,6 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <ProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      
-      {/* Giao diện pages - Protected routes */}
-      <Route
-        path="/giaodien/:page"
-        element={
-          <ProtectedRoute>
-            <GiaoDienViewerPage />
           </ProtectedRoute>
         }
       />
