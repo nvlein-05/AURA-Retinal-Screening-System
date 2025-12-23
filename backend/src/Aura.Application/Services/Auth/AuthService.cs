@@ -554,22 +554,63 @@ public class AuthService : IAuthService
         };
     }
 
-    // TODO: Implement actual social provider verification
-    private async Task<SocialUserInfo?> VerifyGoogleTokenAsync(string idToken)
+    // Verify Google access token by calling Google's userinfo API
+    private async Task<SocialUserInfo?> VerifyGoogleTokenAsync(string accessToken)
     {
-        // TODO: Use Google.Apis.Auth library to verify token
-        // For development, simulate a successful verification
-        await Task.Delay(100);
-        
-        // This is a placeholder - implement actual Google token verification
-        return new SocialUserInfo
+        try
         {
-            ProviderId = "google_" + Guid.NewGuid().ToString("N")[..16],
-            Email = "user@gmail.com",
-            FirstName = "Google",
-            LastName = "User",
-            Provider = "google"
-        };
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = 
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+            
+            var response = await httpClient.GetAsync("https://www.googleapis.com/oauth2/v2/userinfo");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Google token verification failed: {StatusCode}", response.StatusCode);
+                return null;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var googleUser = System.Text.Json.JsonSerializer.Deserialize<GoogleUserInfo>(content, 
+                new System.Text.Json.JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true 
+                });
+
+            if (googleUser == null || string.IsNullOrEmpty(googleUser.Email))
+            {
+                _logger.LogWarning("Failed to parse Google user info");
+                return null;
+            }
+
+            return new SocialUserInfo
+            {
+                ProviderId = googleUser.Id ?? "",
+                Email = googleUser.Email,
+                FirstName = googleUser.GivenName,
+                LastName = googleUser.FamilyName,
+                ProfileImageUrl = googleUser.Picture,
+                Provider = "google"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error verifying Google token");
+            return null;
+        }
+    }
+
+    // Google userinfo response model
+    private class GoogleUserInfo
+    {
+        public string? Id { get; set; }
+        public string? Email { get; set; }
+        public bool VerifiedEmail { get; set; }
+        public string? Name { get; set; }
+        public string? GivenName { get; set; }
+        public string? FamilyName { get; set; }
+        public string? Picture { get; set; }
     }
 
     private async Task<SocialUserInfo?> VerifyFacebookTokenAsync(string accessToken)

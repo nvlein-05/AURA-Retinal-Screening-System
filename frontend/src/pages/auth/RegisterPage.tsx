@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { register, isLoading, error, clearError } = useAuthStore();
+  const { register, googleLogin, isLoading, error, clearError } = useAuthStore();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -55,8 +56,31 @@ const RegisterPage = () => {
     }
   };
 
-  const handleGoogleRegister = async () => {
-    toast.error('Đăng ký Google đang được phát triển');
+  // Google OAuth Register/Login Hook
+  const handleGoogleRegisterClick = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        // Đăng ký/Đăng nhập bằng Google (backend sẽ tự động tạo tài khoản nếu chưa có)
+        const success = await googleLogin(tokenResponse.access_token);
+        if (success) {
+          toast.success('Đăng ký bằng Google thành công!');
+          navigate('/dashboard');
+        } else {
+          toast.error(error || 'Đăng ký Google thất bại');
+        }
+      } catch (err) {
+        console.error('Google register error:', err);
+        toast.error('Đăng ký Google thất bại');
+      }
+    },
+    onError: (errorResponse) => {
+      console.error('Google OAuth error:', errorResponse);
+      toast.error('Đăng ký Google thất bại');
+    },
+  });
+
+  const handleGoogleRegister = () => {
+    handleGoogleRegisterClick();
   };
 
   const handleFacebookRegister = async () => {

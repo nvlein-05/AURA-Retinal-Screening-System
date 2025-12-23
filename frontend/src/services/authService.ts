@@ -33,7 +33,7 @@ export interface AuthResponse {
 }
 
 export interface GoogleLoginPayload {
-  idToken: string;
+  accessToken: string;
 }
 
 export interface FacebookLoginPayload {
@@ -59,8 +59,8 @@ const authService = {
   },
 
   // Social authentication
-  async googleLogin(idToken: string): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/google', { idToken });
+  async googleLogin(accessToken: string): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>('/auth/google', { accessToken });
     if (response.data.success && response.data.accessToken) {
       localStorage.setItem('token', response.data.accessToken);
       if (response.data.refreshToken) {

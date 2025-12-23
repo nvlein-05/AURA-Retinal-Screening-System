@@ -81,7 +81,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto googleLoginDto)
     {
         var ipAddress = GetIpAddress();
-        var result = await _authService.GoogleLoginAsync(googleLoginDto.IdToken, ipAddress);
+        var result = await _authService.GoogleLoginAsync(googleLoginDto.AccessToken, ipAddress);
         
         if (!result.Success)
             return Unauthorized(result);

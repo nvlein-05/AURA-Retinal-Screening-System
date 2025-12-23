@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { login, googleLogin, isLoading, error, clearError } = useAuthStore();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,8 +26,31 @@ const LoginPage = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    toast.error('Đăng nhập Google đang được phát triển');
+  // Google OAuth Login Hook
+  const handleGoogleLoginClick = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        // Gửi access_token lên backend để xác thực
+        const success = await googleLogin(tokenResponse.access_token);
+        if (success) {
+          toast.success('Đăng nhập bằng Google thành công!');
+          navigate('/dashboard');
+        } else {
+          toast.error(error || 'Đăng nhập Google thất bại');
+        }
+      } catch (err) {
+        console.error('Google login error:', err);
+        toast.error('Đăng nhập Google thất bại');
+      }
+    },
+    onError: (errorResponse) => {
+      console.error('Google OAuth error:', errorResponse);
+      toast.error('Đăng nhập Google thất bại');
+    },
+  });
+
+  const handleGoogleLogin = () => {
+    handleGoogleLoginClick();
   };
 
   const handleFacebookLogin = async () => {
