@@ -117,7 +117,7 @@ export const uploadRetinalImage = async (file: File): Promise<string> => {
  * Delete image from Cloudinary (requires authentication - backend implementation recommended)
  * @param publicId Public ID của ảnh cần xóa
  */
-export const deleteImageFromCloudinary = async (publicId: string): Promise<void> => {
+export const deleteImageFromCloudinary = async (_publicId: string): Promise<void> => {
   // Note: Deleting images typically requires backend implementation
   // as it needs the API secret which should not be exposed in frontend
   throw new Error('Delete image should be handled by backend API');

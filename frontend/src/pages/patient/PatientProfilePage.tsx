@@ -105,7 +105,7 @@ const PatientProfilePage = () => {
   const handleCancel = () => {
     // Reload original data
     setHasChanges(false);
-    toast.info('Đã hủy thay đổi');
+    toast('Đã hủy thay đổi');
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
