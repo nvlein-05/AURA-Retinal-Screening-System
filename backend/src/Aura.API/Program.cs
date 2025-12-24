@@ -1,7 +1,11 @@
 using System.Text;
 using Aura.Application.Services.Auth;
 using Aura.Application.Services.Users;
+using Aura.Application.Services.RBAC;
+using Aura.Shared.Authorization;
+using Aura.Shared.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -93,6 +97,15 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
+// Add HttpContextAccessor for PermissionAuthorizationHandler
+builder.Services.AddHttpContextAccessor();
+
+// Register authorization handlers for RBAC
+builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+// Register authorization handlers for RBAC
+builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
 // Configure CORS
 builder.Services.AddCors(options =>
 {
@@ -115,8 +128,14 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IUserService, UserService>();
 
+<<<<<<< HEAD
 // Notifications (in-memory for now)
 builder.Services.AddSingleton<Aura.Application.Services.Notifications.INotificationService, Aura.Infrastructure.Services.Notifications.NotificationService>();
+=======
+// FR-32: RBAC Services
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+>>>>>>> ec974bec419b8753a7db90adeb2edd2123f650a9
 
 // FR-31: Admin Account Management (DB based)
 builder.Services.AddScoped<Aura.API.Admin.AdminDb>();
@@ -155,6 +174,10 @@ app.UseCors("AllowFrontend");
 
 // Authentication & Authorization middleware
 app.UseAuthentication();
+
+// FR-32: RBAC Authorization Middleware (loads user roles/permissions into context)
+app.UseMiddleware<RbacAuthorizationMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllers();
